@@ -7,7 +7,7 @@ on:
 
 jobs:
   build-mac:
-    runs-on: macos-latest
+    runs-on: macos-13
 
     steps:
       - name: Checkout repository
@@ -23,10 +23,14 @@ jobs:
         run: npm install
 
       - name: Build macOS App
-        run: npm run dist:mac
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+        run: npm run build && npx electron-builder --mac dmg zip -c.mac.identity=null
 
       - name: Upload macOS Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: Forma-macOS-Installer
-          path: release/*.dmg
+          path: |
+            release/*.dmg
+            release/*.zip
