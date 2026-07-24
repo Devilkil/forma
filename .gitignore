@@ -1,6 +1,13 @@
 node_modules/
 dist/
 dist-electron/
+release/
 .vite/
 coverage/
+scratch/
 *.log
+*.png
+!build-assets/*.png
+*.tmp
+.DS_Store
+Thumbs.db
