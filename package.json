@@ -9,7 +9,7 @@
     "dev": "npm run build:electron && concurrently -k \"vite\" \"wait-on http://localhost:5173 && electron .\"",
     "build": "tsc -p tsconfig.json && npm run build:electron && vite build",
     "build:electron": "tsc -p tsconfig.electron.json",
-    "dist:win": "npm run build && electron-builder --win nsis --config.directories.output=\"C:\\\\Users\\\\athar\\\\FormaRelease\"",
+    "dist:win": "npm run build && electron-builder --win nsis",
     "dist:mac": "npm run build && electron-builder --mac dmg zip",
     "dist:all": "npm run build && electron-builder -w -m --config.directories.output=\"C:\\\\Users\\\\athar\\\\FormaRelease\"",
     "test": "vitest run",

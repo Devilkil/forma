@@ -1,0 +1,70 @@
+name: Build & Publish GitHub Release
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ windows-latest, macos-13 ]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build Windows Executable
+        if: matrix.os == 'windows-latest'
+        run: npm run dist:win
+
+      - name: Build macOS Application
+        if: matrix.os == 'macos-13'
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+        run: npm run build && npx electron-builder --mac dmg zip -c.mac.identity=null
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: Forma-${{ matrix.os }}
+          path: |
+            release/*.exe
+            release/*.dmg
+            release/*.zip
+
+      - name: Publish to GitHub Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v0.1.0
+          name: Forma Desktop Release v0.1.0
+          body: |
+            ## 📝 Forma Desktop v0.1.0
+            Cross-platform desktop notes app with P2P real-time live synchronization.
+            
+            ### 📥 Download Links:
+            - **Windows Installer**: `Forma Setup 0.1.0.exe`
+            - **macOS Installer**: `Forma-0.1.0-arm64.dmg` / `Forma-0.1.0-mac.zip`
+          draft: false
+          prerelease: false
+          files: |
+            release/*.exe
+            release/*.dmg
+            release/*.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
