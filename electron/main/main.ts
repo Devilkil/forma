@@ -1,6 +1,7 @@
 import { app, BrowserWindow, ipcMain, shell, protocol, net } from "electron";
 import fs from "node:fs";
 import path from "node:path";
+import os from "node:os";
 import { pathToFileURL } from "node:url";
 import { fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
@@ -228,6 +229,18 @@ function registerIpc() {
 let hocuspocusServer: HocuspocusServer | null = null;
 let activeTunnel: any = null;
 
+function getLocalIpAddress(): string {
+  const interfaces = os.networkInterfaces();
+  for (const name of Object.keys(interfaces)) {
+    for (const net of interfaces[name] || []) {
+      if (net.family === "IPv4" && !net.internal) {
+        return net.address;
+      }
+    }
+  }
+  return "127.0.0.1";
+}
+
 async function hostNote(noteId: string): Promise<string> {
   if (hocuspocusServer) {
     await stopHostNote(noteId);
@@ -238,17 +251,19 @@ async function hostNote(noteId: string): Promise<string> {
 
   hocuspocusServer = new HocuspocusServer({
     port: 1234,
+    address: "0.0.0.0",
     quiet: true,
   });
 
   await hocuspocusServer.listen();
-  console.log("[Forma Sync] Hocuspocus WS server listening on port 1234 for note:", noteId);
+  const lanIp = getLocalIpAddress();
+  console.log(`[Forma Sync] Server listening on 0.0.0.0:1234 (LAN IP: ${lanIp}) for note:`, noteId);
 
-  const localUrl = "ws://127.0.0.1:1234";
+  const localUrl = `ws://${lanIp}:1234`;
   store.setNoteShared(noteId, true, localUrl);
 
   tryConnectNoteTunnel(noteId, store).catch((err) => {
-    console.warn("[Forma Sync] Tunnel failed (note still works locally):", err.message);
+    console.warn("[Forma Sync] Tunnel failed (note works on local Wi-Fi):", err.message);
   });
 
   return localUrl;

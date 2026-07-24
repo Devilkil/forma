@@ -137,11 +137,24 @@ function App() {
   const selectedNoteIsShared = selectedNote?.isShared;
   const [provider, setProvider] = useState<HocuspocusProvider | null>(null);
 
+function normalizeWsUrl(rawUrl: string): string {
+  let url = rawUrl.trim();
+  if (!url) return "ws://127.0.0.1:1234";
+  if (!url.startsWith("ws://") && !url.startsWith("wss://") && !url.startsWith("http://") && !url.startsWith("https://")) {
+    url = url.includes("loca.lt") ? `wss://${url}` : `ws://${url}`;
+  } else if (url.startsWith("https://")) {
+    url = url.replace(/^https:\/\//, "wss://");
+  } else if (url.startsWith("http://")) {
+    url = url.replace(/^http:\/\//, "ws://");
+  }
+  return url;
+}
+
   useEffect(() => {
     if (selectedNoteIsShared && selectedNoteId) {
-      const url = selectedNote.syncUrl || "ws://127.0.0.1:1234";
+      const url = normalizeWsUrl(selectedNote.syncUrl || "ws://127.0.0.1:1234");
       const newProvider = new HocuspocusProvider({
-        url: url.startsWith("http") ? url.replace(/^http/, "ws") : url,
+        url,
         name: selectedNoteId,
       });
       setProvider(newProvider);
