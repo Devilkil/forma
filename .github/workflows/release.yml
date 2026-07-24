@@ -12,6 +12,7 @@ permissions:
 jobs:
   build:
     strategy:
+      fail-fast: false
       matrix:
         os: [ windows-latest, macos-13 ]
 
@@ -48,6 +49,7 @@ jobs:
             release/*.exe
             release/*.dmg
             release/*.zip
+          if-no-files-found: ignore
 
       - name: Publish to GitHub Releases
         uses: softprops/action-gh-release@v2
@@ -63,6 +65,7 @@ jobs:
             - **macOS Installer**: `Forma-0.1.0-arm64.dmg` / `Forma-0.1.0-mac.zip`
           draft: false
           prerelease: false
+          fail_on_unmatched_files: false
           files: |
             release/*.exe
             release/*.dmg
